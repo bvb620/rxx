@@ -7,6 +7,7 @@
       :root {
         --primary-color: #ff69b4;
         --gold-gradient: linear-gradient(45deg, #ffd700, #ffaa00);
+        --pink-glow: rgba(255, 105, 180, 0.3);
       }
 
       body {
@@ -56,36 +57,92 @@
       .birthday-card {
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
-        box-shadow: 0 0 50px rgba(255, 105, 180, 0.3);
+        box-shadow: 0 0 50px var(--pink-glow);
         padding: 40px;
         transform: rotateY(20deg);
-        transition: transform 1s;
+        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         max-width: 600px;
         margin: 0 auto;
         will-change: transform;
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        backdrop-filter: blur(5px);
       }
 
       .neon-title {
-        font-size: 4em;
+        font-size: 5em;
         background: var(--gold-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+          0 0 40px rgba(255, 105, 180, 0.3);
         animation: neonPulse 2s infinite;
+        margin: 20px 0;
+        position: relative;
+        z-index: 1;
       }
 
       .countdown {
-        font-size: 2em;
-        color: #fff;
-        text-align: center;
+        font-size: 2.5em;
+        background: linear-gradient(45deg, #ffd700, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         margin: 30px 0;
       }
 
-      .fireworks-container {
-        position: fixed;
+      .gold-text {
+        font-size: 1.8em;
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        padding: 15px 0;
+        margin: 20px 0;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      }
+
+      .reveal-btn {
+        background: var(--gold-gradient);
+        border: none;
+        padding: 15px 40px;
+        border-radius: 30px;
+        font-size: 1.5em;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        margin-top: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .reveal-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
         width: 100%;
         height: 100%;
-        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .reveal-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+      }
+
+      .reveal-btn:hover::before {
+        left: 100%;
+      }
+
+      .birthday-card:hover {
+        transform: rotateY(0deg) scale(1.02);
+        box-shadow: 0 0 80px var(--pink-glow);
       }
 
       @keyframes neonPulse {
@@ -104,6 +161,13 @@
           opacity: 0;
         }
       }
+
+      .fireworks-container {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -117,7 +181,7 @@
           <div class="countdown" id="countdown"></div>
           <div class="message">
             <p class="gold-text">愿你的每一天都比星辰更璀璨</p>
-            <button class="reveal-btn">点击开启祝福</button>
+            <button class="reveal-btn">✨ 开启魔法祝福 ✨</button>
           </div>
         </div>
       </div>
@@ -133,31 +197,35 @@
         document.querySelector(".main-content").style.opacity = 1;
       });
 
-      // 烟花特效实现
+      // 烟花特效增强版
       class Fireworks {
         constructor(canvas) {
           this.canvas = canvas;
           this.ctx = canvas.getContext("2d");
           this.particles = [];
 
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-
+          this.resizeCanvas();
+          window.addEventListener("resize", this.resizeCanvas.bind(this));
           document.addEventListener("click", this.createFirework.bind(this));
           this.animate();
         }
 
+        resizeCanvas() {
+          this.canvas.width = window.innerWidth;
+          this.canvas.height = window.innerHeight;
+        }
+
         createFirework(e) {
           const colors = ["#ff4081", "#ffd700", "#ff69b4"];
-          for (let i = 0; i < 50; i++) {
+          for (let i = 0; i < 75; i++) {
             this.particles.push({
               x: e.clientX,
               y: e.clientY,
-              vx: (Math.random() - 0.5) * 5,
-              vy: (Math.random() - 0.5) * 5 - 2,
+              vx: (Math.random() - 0.5) * 7,
+              vy: (Math.random() - 0.5) * 7 - 3,
               life: 1,
-              color: colors[i % 3],
-              size: Math.random() * 3 + 2,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              size: Math.random() * 4 + 2,
             });
           }
         }
@@ -168,13 +236,13 @@
           this.particles.forEach((p, i) => {
             p.x += p.vx;
             p.y += p.vy;
-            p.vy += 0.05;
-            p.life -= 0.02;
+            p.vy += 0.08;
+            p.life -= 0.015;
 
             this.ctx.beginPath();
             this.ctx.fillStyle = p.color;
             this.ctx.globalAlpha = p.life;
-            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
             this.ctx.fill();
 
             if (p.life <= 0) this.particles.splice(i, 1);
@@ -187,7 +255,7 @@
       // 初始化烟花系统
       new Fireworks(document.getElementById("fireworks"));
 
-      // 倒计时功能
+      // 精确到秒的倒计时
       function updateCountdown() {
         const targetDate = new Date("2025-05-20");
         const now = new Date();
@@ -199,18 +267,29 @@
 
         const diff = targetDate - now;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        document.getElementById(
-          "countdown"
-        ).innerHTML = `距离特别时刻还有：<br><span style="font-size:1.5em">${days} 天</span>`;
+        const hours = Math.floor(
+          (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById("countdown").innerHTML = `
+          <div style="font-size:0.8em">重大时刻即将降临：</div>
+          <div style="font-size:1.3em">
+            ${days} 天 ${hours.toString().padStart(2, "0")} 时 
+            ${minutes.toString().padStart(2, "0")} 分 
+            ${seconds.toString().padStart(2, "0")} 秒
+          </div>
+        `;
       }
       setInterval(updateCountdown, 1000);
 
-      // 按钮跳转逻辑
+      // 按钮交互动画
       document
         .querySelector(".reveal-btn")
-        .addEventListener("click", function (event) {
+        .addEventListener("click", function (e) {
           const card = document.querySelector(".birthday-card");
-          event.target.disabled = true;
+          e.target.disabled = true;
 
           card.style.animation = "cardExit 1s forwards";
           document.body.style.overflow = "hidden";
